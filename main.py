@@ -40,7 +40,7 @@ games = {
             "fakeartist":"879864070101172255"
         }
 
-# /b chess /b doodle 
+# /b chess /b doodle /b checkers
 @bot.command()
 async def b(ctx,arg):
     body["target_application_id"] = games[arg]
