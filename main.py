@@ -15,16 +15,29 @@ slash = SlashCommand(bot, sync_commands=True)
 @bot.event
 async def on_ready():
     print('bzz bzz, {0.user}'.format(bot))
-    invite_tracker.get_invites(bot)
 
-# @bot.event
-# async def on_message(message):
-# 	if message.author == bot.user:
-# 		return
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+    # if message.author.id == 332845912873238530:
+    #     await send_rules(message.channel)
+
+async def send_rules(channel):
+    await channel.send("https://cdn.discordapp.com/attachments/908738844042600478/918177317078057020/ServerChannelHeaders_Rules1.png")
+    await channel.send("Obey or get spanked\n\n>>> :one: No spamming and no scamming\n:two: Don't abuse pings\n:three: No self-promotion or shilling\n:four: Keep it PMA, keep it BSJ")
+    return
 
 @bot.event
 async def on_member_join(member):
-    invite_tracker.new_member(member)
+    if(member.guild.id == 924048147221721149): # P.E.W Guild ID 
+        invite_tracker.new_member(member)
+
+@slash.slash(description="say the rules")
+async def rules(ctx: SlashContext,arg):
+    await ctx.send("https://cdn.discordapp.com/attachments/908738844042600478/918177317078057020/ServerChannelHeaders_Rules1.png")
+    await ctx.send(">>> :one: No spamming and no scamming\n:two: Don't abuse pings\n:three: No self-promotion or shilling\n:four: Keep it PMA, keep it BSJ")
+    return
 
 body = {
             "max_age": 1800,
