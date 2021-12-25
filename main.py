@@ -1,16 +1,30 @@
 #python3 -m pip install -U discord.py
 
 import discord, requests, json
+from discord import Client, Intents, Embed
 from discord.ext import commands
+from discord_slash import SlashCommand, SlashContext
 import os
 from rgb import get_colour
+import invite_tracker
 import asyncio
 
-bot = commands.Bot(command_prefix = "/")
+bot = commands.Bot(command_prefix="")
+slash = SlashCommand(bot, sync_commands=True)
 
 @bot.event
 async def on_ready():
-	print('bzz bzz, {0.user}'.format(bot))
+    print('bzz bzz, {0.user}'.format(bot))
+    invite_tracker.get_invites(bot)
+
+# @bot.event
+# async def on_message(message):
+# 	if message.author == bot.user:
+# 		return
+
+@bot.event
+async def on_member_join(member):
+    invite_tracker.new_member(member)
 
 body = {
             "max_age": 1800,
@@ -28,7 +42,7 @@ auth = {
         }
 games = {
             "chess": "832012774040141894",
-            "doodle":"878067389634314250",
+            "skribbl":"878067389634314250",
             "scrabble":"879863686565621790",
             "boggle":"879863976006127627",
             "checkers":"832013003968348200",
@@ -40,10 +54,16 @@ games = {
             "fakeartist":"879864070101172255"
         }
 
-# /b chess /b doodle /b checkers
-@bot.command()
-async def b(ctx,arg):
-    body["target_application_id"] = games[arg]
+# /play chess /play doodle /play checkers
+@slash.slash(description="Play games in a voice channel")
+async def play(ctx: SlashContext,arg):
+    #await ctx.send("slash play detected")
+    try:
+        body["target_application_id"] = games[arg]
+    except:
+        embed = discord.Embed(title = "Available Games", description = "chess, checkers, skribbl, scrabble, boggle, humanity, poker, amogus,  fakeartist, watchparty", color = discord.Colour.green())
+        await ctx.send(embed=embed)
+        return
     try:
         voiceChannel = ctx.author.voice.channel
         if voiceChannel != None:
@@ -65,20 +85,13 @@ async def b(ctx,arg):
 # 	role = discord.utils.get(guild.roles, name="rgb")
 # 	print(role.color)
 # 	col = 0xc80000
-
+#
 # 	while True:
 # 		col = get_colour(col)
 # 		await role.edit(colour=col)
 # 		await asyncio.sleep(0.1)
 
-# @bot.event
-# async def on_message(message):
-# 	if message.author == bot.user:
-# 		return
-
-# 	msg = message.content
-
-# 	if msg.startswith('u r a b'):
+# 	if message.content.startswith('u r a b'):
 # 		await message.channel.send('me too thanks')
 # 		await rgb()
 
