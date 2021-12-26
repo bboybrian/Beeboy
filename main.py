@@ -8,6 +8,10 @@ from discord_slash.utils.manage_commands import create_choice, create_option
 from discord_components import DiscordComponents, Button
 from rgb import get_colour
 import invite_tracker.invite_tracker as invite_tracker
+import cache as cc
+
+with open('token.txt') as f:
+        token = f.read()
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=".", intents=intents)
@@ -18,45 +22,96 @@ slash = SlashCommand(bot, sync_commands=True)
 async def on_ready():
     print('bzz bzz, {0.user}'.format(bot))
 
-# @bot.event
-# async def on_message(message):
-#     if message.author == bot.user:
-#         return
-
-@bot.command()
-async def a(ctx):
-    await invite_tracker.test()
-
-@bot.command()
-async def b(ctx):
-    buttons = [Button(label=" ", custom_id="1"), Button(label=" ", custom_id="2"),Button(label=" ", custom_id="3")]
-    await ctx.send("Buttons!", components=buttons)
-
 @bot.event
 async def on_button_click(interaction):
-    print("button_clicked")
-    await interaction.respond(content=f"Button {interaction.component.custom_id} Clicked")
+    if interaction.message.id == 924679405987561523:
+        print("button_click")
+        await prepend_emoji(interaction.author, interaction.component.label)
+        await interaction.respond(content="Changed! Sidebar takes a while to update")
 
 #region send functions
-
-async def send_rules(channel):
-    await channel.send("https://cdn.discordapp.com/attachments/908738844042600478/918177317078057020/ServerChannelHeaders_Rules1.png")
-    await channel.send("Obey or get spanked\n\n>>> :one: No spamming and no scamming\n:two: Don't abuse pings\n:three: No self-promotion or shilling\n:four: Keep it PMA, keep it BSJ")
+@bot.command()
+async def send_rules(ctx):
+    await ctx.send(cc.rules1)
+    await ctx.send(cc.rules2, components = cc.emoji_buttons)
+    await ctx.send("Choose gang colour with: ```fix\n/colour [HEX]```")
     return
 
+leaderboard = 924737070138818600 # Message ID of leaderboard message
+@bot.command()
+async def update_leaderboard(ctx):
+    print("update_leaderboard")
+    try:
+        all_gangs = {}
+        all_roles = await ctx.guild.fetch_roles()
+        for role in all_roles:
+            if "gang" in role.name:
+                await role.edit(hoist = False)
+                if len(role.members) > 0: # 0 for beta only, afterwards 2
+                    all_gangs[role.name] = len(role.members)
+        all_gangs = sorted(all_gangs.items(), key=lambda x:x[1])
+        all_gangs.reverse()
+        await hoist_leaderboard(all_roles, all_gangs)
+
+        # Edit message
+        leaderboard_channel = ctx.guild.get_channel(924692245746184242) # P.E.W's leaderboard channel
+        l_msg = await leaderboard_channel.fetch_message(leaderboard)
+        await l_msg.edit(content = cc.fill_leaderboard(all_gangs))
+        print("leaderboard updated")
+        # await ctx.send(cc.leaderboard_h)
+        # await ctx.send(cc.blank_banner)
+        # await ctx.send(cc.fill_leaderboard(all_gangs))
+    except:
+        print("update_leaderboard failed")
+    return
+
+async def hoist_leaderboard(rlist, llist):
+    for i in range(min(3,len(llist))):
+        for role in rlist:
+            if role.name == llist[i][0]:
+                print(role.name)
+                await role.edit(hoist=True)
+                break
 #endregion
 
 @bot.event
 async def on_member_join(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID  
         await invite_tracker.new_member(member)
-        
+        await update_leaderboard()
+
 @bot.event
 async def on_member_remove(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID 
         await invite_tracker.remove_member(member)
+        await update_leaderboard()
 
-# /play
+# region prepend emoji
+async def prepend_emoji(member, emoji):
+    try:
+        role = invite_tracker.find_linked_role(member)
+        new_name = emoji + " " + member.name + "'s gang"
+        await role.edit(name=new_name) 
+    except:
+        print("prepend_emoji failed")
+    return
+# endregion
+
+# region /colour
+@slash.slash(description="Change gang colour to a HEX colour code")
+async def colour(ctx:SlashContext, hex):
+    try:
+        role = invite_tracker.find_linked_role(ctx.author)
+        hex = int(hex, 16)
+        print(hex)
+        await role.edit(colour=hex)
+        await ctx.send("Colour changed!")
+    except:
+        await ctx.send("Invalid colour hex")
+    return
+# endregion
+
+# region /play
 # region /play cache
 body = {
             "max_age": 1800,
@@ -68,7 +123,7 @@ body = {
         }
 
 auth = {
-            "Authorization": "Bot NTU2ODg0NjM0MjQ4Njc1MzMw.XI59Ow.RbWPBtOMa_S2f1aQjbQcjdo8F7U",
+            "Authorization": "Bot " + token,
             "Content-Type": "application/json",
             "X-Ratelimit-Precision": "millisecond"
         }
@@ -87,7 +142,6 @@ games = {
         }
 # endregion
 @slash.slash(
-    #region /play details
     name = "play",
     description = "Play games in a voice channel",
     options = [
@@ -144,15 +198,13 @@ games = {
             ]
         )
     ]
-    #endregion
 )
 async def play(ctx: SlashContext, game:str):
     #await ctx.send("slash play detected")
     try:
         body["target_application_id"] = games[game]
     except:
-        embed = discord.Embed(title = "Available Games", description = "chess, checkers, skribbl, scrabble, boggle, humanity, poker, amogus, fishing, fakeartist, watchparty", color = discord.Colour.green())
-        await ctx.send(embed=embed)
+        await ctx.send(embed=cc.slashplay_embed)
         return
     try:
         voiceChannel = ctx.author.voice.channel
@@ -167,6 +219,7 @@ async def play(ctx: SlashContext, game:str):
             await ctx.send("Connect to VC you pepeg")
     except:
         await ctx.send("Connect to VC you 4head")
+# endregion
 
 # region rgb
 # async def rgb():
@@ -185,4 +238,4 @@ async def play(ctx: SlashContext, game:str):
 # 		await rgb()
 # endregion
 
-bot.run('NTU2ODg0NjM0MjQ4Njc1MzMw.XI59Ow.RbWPBtOMa_S2f1aQjbQcjdo8F7U')
+bot.run(token)

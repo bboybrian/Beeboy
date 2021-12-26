@@ -1,13 +1,13 @@
 import discord, json
-
 from discord.channel import DMChannel
-# from discord import user
 
-async def test():
+def find_linked_role(member):
     with open('invite_tracker/invites.json') as f:
-        invites = json.load(f)
-    print(invites)
-    return
+            invites = json.load(f)
+    for i in invites:
+        if invites[i]["linked_user_id"] == member.id:
+            role = discord.utils.get(member.guild.roles, id = invites[i]["linked_role_id"])
+            return role
 
 async def new_member(member):
     print("P.E.W new_member")
@@ -33,7 +33,7 @@ async def new_member(member):
             await member.add_roles(role)
 
             # Own invite link
-            general_channel = discord.utils.get(guild.channels, id = 924048147825696840) # P.E.W's general channel
+            general_channel = guild.get_channel(924048147825696840) # P.E.W's general channel
             new_invite = await general_channel.create_invite(unique = True, reason = r_name)
 
             # PM the user his/her invite link
@@ -75,15 +75,18 @@ async def remove_member(member):
     new_role = discord.utils.get(guild.roles, id = invites[invites[i]["parent_code"]]["linked_role_id"])
 
     # Delete pinned message in member's DM
-    pins = await member.dm_channel.pins()
-    for p in pins:
-        if p.author != member:
-            await p.delete()
-            break
+    try:
+        pins = await member.dm_channel.pins()
+        for p in pins:
+            if p.author != member:
+                await p.delete()
+                break
+    except:
+        print("DM Channel not found / no message pinned")
 
     # Announcement to old_role holders
     announcement = (f"{member.name} has left the server.\n<@&{old_role.id}> will now be absorbed into {new_role.name}!")
-    general_channel = discord.utils.get(guild.channels, id = 924048147825696840) # P.E.W's general channel
+    general_channel = guild.get_channel(924048147825696840) # P.E.W's general channel
     await general_channel.send(announcement)
 
     # Apply role change
