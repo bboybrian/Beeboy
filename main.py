@@ -28,6 +28,16 @@ async def on_button_click(interaction):
         print("button_click")
         await prepend_emoji(interaction.author, interaction.component.label)
         await interaction.respond(content="Changed! Sidebar takes a while to update")
+        await update(interaction.guild)
+
+async def update(guild):
+    # Update Leaderboard
+    await update_leaderboard(guild)
+
+    # Shift bots to bottommost role
+    role = guild.get_role(924250286468526080) # P.E.W 'Bot' role ID
+    role.edit(position = 0)
+    return
 
 #region send functions
 @bot.command()
@@ -39,11 +49,11 @@ async def send_rules(ctx):
 
 leaderboard = 924737070138818600 # Message ID of leaderboard message
 @bot.command()
-async def update_leaderboard(ctx):
+async def update_leaderboard(guild):
     print("update_leaderboard")
     try:
         all_gangs = {}
-        all_roles = await ctx.guild.fetch_roles()
+        all_roles = await guild.fetch_roles()
         for role in all_roles:
             if "gang" in role.name:
                 await role.edit(hoist = False)
@@ -54,7 +64,7 @@ async def update_leaderboard(ctx):
         await hoist_leaderboard(all_roles, all_gangs)
 
         # Edit message
-        leaderboard_channel = ctx.guild.get_channel(924692245746184242) # P.E.W's leaderboard channel
+        leaderboard_channel = guild.get_channel(924692245746184242) # P.E.W's leaderboard channel
         l_msg = await leaderboard_channel.fetch_message(leaderboard)
         await l_msg.edit(content = cc.fill_leaderboard(all_gangs))
         print("leaderboard updated")
@@ -78,13 +88,13 @@ async def hoist_leaderboard(rlist, llist):
 async def on_member_join(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID  
         await invite_tracker.new_member(member)
-        await update_leaderboard()
+        await update(member.guild)
 
 @bot.event
 async def on_member_remove(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID 
         await invite_tracker.remove_member(member)
-        await update_leaderboard()
+        await update(member.guild)
 
 # region prepend emoji
 async def prepend_emoji(member, emoji):
@@ -106,6 +116,7 @@ async def colour(ctx:SlashContext, hex):
         print(hex)
         await role.edit(colour=hex)
         await ctx.send("Colour changed!")
+        await update(ctx.guild)
     except:
         await ctx.send("Invalid colour hex")
     return

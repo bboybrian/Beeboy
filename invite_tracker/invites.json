@@ -1,1 +1,14 @@
-{"vVvuG6kV82": {"uses": 24, "linked_user_id": 332845912873238530, "linked_role_id": 924400134157111297, "parent_code": 0}}
+{
+    "vVvuG6kV82": {
+        "uses": 25,
+        "linked_user_id": 332845912873238530,
+        "linked_role_id": 924400134157111297,
+        "parent_code": "jfpvZJUEqG"
+    },
+    "jfpvZJUEqG": {
+        "uses": 0,
+        "linked_user_id": 761483484799041537,
+        "linked_role_id": 924754969364676728,
+        "parent_code": 0
+    }
+}
