@@ -1,14 +1,12 @@
 #python3 -m pip install -U discord.py
 
-import discord, requests, json
+import discord, requests, json, os, asyncio
 from discord import Client, Intents, Embed
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
-import os
+from discord_slash.utils.manage_commands import create_choice, create_option
 from rgb import get_colour
 import invite_tracker.invite_tracker as invite_tracker
-import invite_tracker.react_settings as react_settings
-import asyncio
 
 intents = discord.Intents.default()
 intents.members = True
@@ -45,12 +43,6 @@ async def on_member_remove(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID 
         await invite_tracker.remove_member(member)
 
-@slash.slash(description="say the rules")
-async def rules(ctx: SlashContext,arg):
-    await ctx.send("https://cdn.discordapp.com/attachments/908738844042600478/918177317078057020/ServerChannelHeaders_Rules1.png")
-    await ctx.send(">>> :one: No spamming and no scamming\n:two: Don't abuse pings\n:three: No self-promotion or shilling\n:four: Keep it PMA, keep it BSJ")
-    return
-
 body = {
             "max_age": 1800,
             "max_uses": 0,
@@ -80,21 +72,78 @@ games = {
         }
 
 # /play chess /play doodle /play checkers
-@slash.slash(description="Play games in a voice channel")
-async def play(ctx: SlashContext,arg):
+@slash.slash(
+    #region /play details
+    name = "play",
+    description = "Play games in a voice channel",
+    options = [
+        create_option(
+            name = "game",
+            description = "Choose a game",
+            required = True,
+            option_type = 3,
+            choices = [
+                create_choice(
+                    name = "Chess",
+                    value = "chess"
+                ),
+                create_choice(
+                    name = "Checkers",
+                    value = "checkers"
+                ),
+                create_choice(
+                    name = "Skribbl.io",
+                    value = "skribbl"
+                ),
+                create_choice(
+                    name = "Scrabble",
+                    value = "scrabble"
+                ),
+                create_choice(
+                    name = "Boggle",
+                    value = "boggle"
+                ),
+                create_choice(
+                    name = "Cards Against Humanity",
+                    value = "humanity"
+                ),
+                create_choice(
+                    name = "Poker",
+                    value = "poker"
+                ),
+                create_choice(
+                    name = "Amogus",
+                    value = "amoguss"
+                ),
+                create_choice(
+                    name = "Fishing",
+                    value = "fishing"
+                ),
+                create_choice(
+                    name = "Fake Artist",
+                    value = "fakeartist"
+                ),
+                create_choice(
+                    name = "YouTube watch party",
+                    value = "watchparty"
+                )
+            ]
+        )
+    ]
+    #endregion
+)
+async def play(ctx: SlashContext, game:str):
     #await ctx.send("slash play detected")
     try:
-        body["target_application_id"] = games[arg]
+        body["target_application_id"] = games[game]
     except:
-        embed = discord.Embed(title = "Available Games", description = "chess, checkers, skribbl, scrabble, boggle, humanity, poker, amogus,  fakeartist, watchparty", color = discord.Colour.green())
+        embed = discord.Embed(title = "Available Games", description = "chess, checkers, skribbl, scrabble, boggle, humanity, poker, amogus, fishing, fakeartist, watchparty", color = discord.Colour.green())
         await ctx.send(embed=embed)
         return
     try:
         voiceChannel = ctx.author.voice.channel
         if voiceChannel != None:
             url = f"https://discord.com/api/v9/channels/{voiceChannel.id}/invites"
-            
-
             obj = json.dumps(body, separators=(',', ':'), ensure_ascii=True)
             code = (requests.post(url, data = obj, headers = auth))
             code = json.loads(code.text)["code"]

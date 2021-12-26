@@ -1,4 +1,6 @@
 import discord, json
+
+from discord.channel import DMChannel
 # from discord import user
 
 async def new_member(member):
@@ -64,6 +66,13 @@ async def remove_member(member):
     # Legacy role members
     old_role = discord.utils.get(guild.roles, id = i["linked_role_id"])
     new_role = discord.utils.get(guild.roles, id = invites[i["parent_code"]]["linked_role_id"])
+
+    # Delete pinned message in member's DM
+    pins = member.dm_channel.pins()
+    for p in pins:
+        if p.author != member:
+            await p.delete()
+            break
 
     # Announcement to old_role holders
     announcement = [
