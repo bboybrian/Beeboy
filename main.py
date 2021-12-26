@@ -5,25 +5,37 @@ from discord import Client, Intents, Embed
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
+from discord_components import DiscordComponents, Button
 from rgb import get_colour
 import invite_tracker.invite_tracker as invite_tracker
 
-intents = discord.Intents.default()
-intents.members = True
-bot = commands.Bot(command_prefix="", intents=intents)
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=".", intents=intents)
+DiscordComponents(bot)
 slash = SlashCommand(bot, sync_commands=True)
 
 @bot.event
 async def on_ready():
     print('bzz bzz, {0.user}'.format(bot))
 
+# @bot.event
+# async def on_message(message):
+#     if message.author == bot.user:
+#         return
+
+@bot.command()
+async def a(ctx):
+    await invite_tracker.test()
+
+@bot.command()
+async def b(ctx):
+    buttons = [Button(label=" ", custom_id="1"), Button(label=" ", custom_id="2"),Button(label=" ", custom_id="3")]
+    await ctx.send("Buttons!", components=buttons)
+
 @bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-    # if message.author.id == 332845912873238530:
-    #     m = await message.author.send("This is your private invite code to P.E.W:")
-    #     await m.pin()
+async def on_button_click(interaction):
+    print("button_clicked")
+    await interaction.respond(content=f"Button {interaction.component.custom_id} Clicked")
 
 #region send functions
 
@@ -38,11 +50,14 @@ async def send_rules(channel):
 async def on_member_join(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID  
         await invite_tracker.new_member(member)
+        
 @bot.event
 async def on_member_remove(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID 
         await invite_tracker.remove_member(member)
 
+# /play
+# region /play cache
 body = {
             "max_age": 1800,
             "max_uses": 0,
@@ -70,8 +85,7 @@ games = {
             "fishing":"814288819477020702",
             "fakeartist":"879864070101172255"
         }
-
-# /play chess /play doodle /play checkers
+# endregion
 @slash.slash(
     #region /play details
     name = "play",
@@ -154,6 +168,7 @@ async def play(ctx: SlashContext, game:str):
     except:
         await ctx.send("Connect to VC you 4head")
 
+# region rgb
 # async def rgb():
 # 	guild = bot.get_guild(551625591305011201)
 # 	role = discord.utils.get(guild.roles, name="rgb")
@@ -168,5 +183,6 @@ async def play(ctx: SlashContext, game:str):
 # 	if message.content.startswith('u r a b'):
 # 		await message.channel.send('me too thanks')
 # 		await rgb()
+# endregion
 
 bot.run('NTU2ODg0NjM0MjQ4Njc1MzMw.XI59Ow.RbWPBtOMa_S2f1aQjbQcjdo8F7U')
