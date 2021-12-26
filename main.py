@@ -6,10 +6,13 @@ from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
 import os
 from rgb import get_colour
-import invite_tracker
+import invite_tracker.invite_tracker as invite_tracker
+import invite_tracker.react_settings as react_settings
 import asyncio
 
-bot = commands.Bot(command_prefix="")
+intents = discord.Intents.default()
+intents.members = True
+bot = commands.Bot(command_prefix="", intents=intents)
 slash = SlashCommand(bot, sync_commands=True)
 
 @bot.event
@@ -21,17 +24,26 @@ async def on_message(message):
     if message.author == bot.user:
         return
     # if message.author.id == 332845912873238530:
-    #     await send_rules(message.channel)
+    #     m = await message.author.send("This is your private invite code to P.E.W:")
+    #     await m.pin()
+
+#region send functions
 
 async def send_rules(channel):
     await channel.send("https://cdn.discordapp.com/attachments/908738844042600478/918177317078057020/ServerChannelHeaders_Rules1.png")
     await channel.send("Obey or get spanked\n\n>>> :one: No spamming and no scamming\n:two: Don't abuse pings\n:three: No self-promotion or shilling\n:four: Keep it PMA, keep it BSJ")
     return
 
+#endregion
+
 @bot.event
 async def on_member_join(member):
-    if(member.guild.id == 924048147221721149): # P.E.W Guild ID 
-        invite_tracker.new_member(member)
+    if member.guild.id == 924048147221721149: # P.E.W Guild ID  
+        await invite_tracker.new_member(member)
+@bot.event
+async def on_member_remove(member):
+    if member.guild.id == 924048147221721149: # P.E.W Guild ID 
+        await invite_tracker.remove_member(member)
 
 @slash.slash(description="say the rules")
 async def rules(ctx: SlashContext,arg):
