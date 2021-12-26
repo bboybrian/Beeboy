@@ -1,12 +1,11 @@
 #python3 -m pip install -U discord.py
 
-import discord, requests, json, os, asyncio
-from discord import Client, Intents, Embed
+import discord, requests, json
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
-from discord_components import DiscordComponents, Button
-from rgb import get_colour
+from discord_components import DiscordComponents
+# from rgb import get_colour
 import invite_tracker.invite_tracker as invite_tracker
 import cache as cc
 

@@ -1,5 +1,4 @@
 import discord, json
-from discord.channel import DMChannel
 
 def find_linked_role(member):
     with open('invite_tracker/invites.json') as f:
