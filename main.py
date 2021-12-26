@@ -29,14 +29,14 @@ async def on_button_click(interaction):
         await interaction.respond(content="Changed! Sidebar takes a while to update")
         await update(interaction.guild)
 
-@bot.command()
 async def update(guild):
     # Update Leaderboard
     await update_leaderboard(guild)
 
     # Shift bots to bottommost role
     role = guild.get_role(924250286468526080) # P.E.W 'Bot' role ID
-    await role.edit(position = 0)
+    if role.position > 0:
+        await role.edit(position = 0)
     return
 
 #region send functions
