@@ -57,6 +57,15 @@ async def on_button_click(interaction):
         await interaction.respond(content="Changed! Sidebar takes a while to update")
         await update(interaction.guild)
 
+async def prepend_emoji(member, emoji):
+    try:
+        role = invite_tracker.find_linked_role(member)
+        new_name = emoji + " " + member.name + "'s gang"
+        await role.edit(name=new_name) 
+    except:
+        print("prepend_emoji failed")
+    return
+
 async def update(guild):
     # Shift 'Bot' to bottommost role
     role = guild.get_role(924250286468526080) # P.E.W 'Bot' role ID
@@ -107,6 +116,7 @@ async def hoist_leaderboard(rlist, llist):
                 await role.edit(position = n_gangs + 1 - i) # +1 for the Bot role
                 break
 
+# region invite_tracker functions
 @bot.event
 async def on_member_join(member):
     if member.guild.id == 924048147221721149: # P.E.W Guild ID  
@@ -119,15 +129,14 @@ async def on_member_remove(member):
         await invite_tracker.remove_member(member)
         await update(member.guild)
 
-# region prepend emoji
-async def prepend_emoji(member, emoji):
-    try:
-        role = invite_tracker.find_linked_role(member)
-        new_name = emoji + " " + member.name + "'s gang"
-        await role.edit(name=new_name) 
-    except:
-        print("prepend_emoji failed")
-    return
+@bot.event
+async def on_invite_create(invite):
+    if invite.guild.id == 924048147221721149: # P.E.W Guild ID 
+        if invite.inviter != bot:
+            await invite.delete(reason = "unmanaged invite created")
+            print("deleted stray invite")
+
+
 # endregion
 
 # region /colour
