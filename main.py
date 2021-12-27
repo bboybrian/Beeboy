@@ -38,6 +38,11 @@ async def move_role(ctx, role_id: int, pos: int):
         await ctx.send("Role moved")
     except:
         await ctx.send("Role not moved")
+
+@bot.command()
+@commands.has_role('Developer')
+async def dev_update(ctx):
+    await update(ctx.guild)
 #endregion
 
 @bot.event
@@ -133,7 +138,7 @@ async def colour(ctx:SlashContext, hex):
         await ctx.send("Colour changed!")
     except:
         await ctx.send("Invalid colour hex")
-        
+
     try:
         await update(ctx.guild)
     except:
