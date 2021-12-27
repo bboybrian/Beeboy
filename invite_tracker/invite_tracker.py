@@ -129,5 +129,5 @@ async def remove_member(member):
                 json.dump(invites, json_file, indent=4)
             return
 
-    print("member had no linked invite")
-    return
+        print("member had no linked invite")
+        return
