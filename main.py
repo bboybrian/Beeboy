@@ -76,16 +76,19 @@ async def update_leaderboard(guild):
         for role in all_roles:
             if "gang" in role.name:
                 await role.edit(hoist = False)
-                if len(role.members) > 0: # 0 for beta only, afterwards 2
+                if len(role.members) > 2: # 0 for beta only, afterwards 2
                     all_gangs[role.name] = len(role.members)
-        all_gangs = sorted(all_gangs.items(), key=lambda x:x[1])
-        all_gangs.reverse()
-        await hoist_leaderboard(all_roles, all_gangs)
-
+            
         # Edit message
         leaderboard_channel = guild.get_channel(924692245746184242) # P.E.W's leaderboard channel
         l_msg = await leaderboard_channel.fetch_message(leaderboard)
-        await l_msg.edit(content = cc.fill_leaderboard(all_gangs))
+        if all_gangs == {}:
+            await l_msg.edit(content ="Only gangs with 3+ members are shown")
+        else:
+            all_gangs = sorted(all_gangs.items(), key=lambda x:x[1])
+            all_gangs.reverse()
+            await hoist_leaderboard(all_roles, all_gangs)
+            await l_msg.edit(content = cc.fill_leaderboard(all_gangs))  
         print("leaderboard updated")
         # await ctx.send(cc.leaderboard_h)
         # await ctx.send(cc.blank_banner)

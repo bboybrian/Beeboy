@@ -60,6 +60,10 @@ async def new_member(member):
 async def remove_member(member):
     print("P.E.W remove_member")
     guild = member.guild
+    if guild.get_member(member.id):
+        print(f"{member.name} did not leave guild")
+        return
+
     with open('invite_tracker/invites.json') as f:
         invites = json.load(f)
     
@@ -90,8 +94,8 @@ async def remove_member(member):
 
     # Apply role change
     for m in old_role.members:
-        m.remove_roles(old_role, reason = member.name + " left the server")
-        m.add_roles(new_role, reason = "Subsumed by parent gang")
+        await m.remove_roles(old_role, reason = member.name + " left the server")
+        await m.add_roles(new_role, reason = "Subsumed by parent gang")
 
     # Delete old role & invite
     await old_role.delete()
