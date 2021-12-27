@@ -1,4 +1,5 @@
-#python3 -m pip install -U discord.py
+# python3 -m pip install -U discord.py
+# REFRESH INVITES.JSON FROM EPIKHOST BEFORE DOING ANYTHING
 
 import discord, requests, json
 from discord.ext import commands
