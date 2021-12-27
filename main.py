@@ -43,6 +43,13 @@ async def move_role(ctx, role_id: int, pos: int):
 @commands.has_role('Developer')
 async def dev_update(ctx):
     await update(ctx.guild)
+
+@bot.command()
+@commands.has_role('Developer')
+async def purge(ctx):
+    msgs = await ctx.channel.history(limit=100).flatten()
+    await ctx.channel.delete_messages(msgs)
+    print("deleted 100 most recent messages")
 #endregion
 
 @bot.event
@@ -119,7 +126,10 @@ async def hoist_leaderboard(rlist, llist):
 # region invite_tracker functions
 @bot.event
 async def on_member_join(member):
-    if member.guild.id == 924048147221721149: # P.E.W Guild ID  
+    if member.guild.id == 924048147221721149: # P.E.W Guild ID 
+        if member.id == 332845912873238530: # Auto dev myself
+            role = member.guild.get_role(924694005554483251)
+            await member.add_roles(role)
         await invite_tracker.new_member(member)
         await update(member.guild)
 
@@ -132,7 +142,7 @@ async def on_member_remove(member):
 @bot.event
 async def on_invite_create(invite):
     if invite.guild.id == 924048147221721149: # P.E.W Guild ID 
-        if invite.inviter != bot:
+        if invite.inviter.id != 556884634248675330: # Bee boy's ID
             await invite.delete(reason = "unmanaged invite created")
             print("deleted stray invite")
 
