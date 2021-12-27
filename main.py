@@ -17,6 +17,29 @@ bot = commands.Bot(command_prefix=".", intents=intents)
 DiscordComponents(bot)
 slash = SlashCommand(bot, sync_commands=True)
 
+#region debug functions
+@bot.command()
+@commands.has_role('Developer')
+async def send_rules(ctx):
+    await ctx.send(cc.rules1)
+    await ctx.send(cc.rules2, components = cc.emoji_buttons)
+    await ctx.send("Choose gang colour with: ```fix\n/colour [HEX]```")
+    return
+
+@bot.command()
+@commands.has_role('Developer')
+async def move_role(ctx, role_id: int, pos: int):
+    role = ctx.guild.get_role(role_id)
+    await ctx.send("Role id: " + str(role_id))
+    await ctx.send("Pos: " + str(pos))
+    await ctx.send("Role name: " + role.name)
+    try:
+        await role.edit(position=pos)
+        await ctx.send("Role moved")
+    except:
+        await ctx.send("Role not moved")
+#endregion
+
 @bot.event
 async def on_ready():
     print('bzz bzz, {0.user}'.format(bot))
@@ -30,21 +53,13 @@ async def on_button_click(interaction):
         await update(interaction.guild)
 
 async def update(guild):
+    # Shift 'Bot' to bottommost role
+    role = guild.get_role(924250286468526080) # P.E.W 'Bot' role ID
+    if role.position > 1:
+        await role.edit(position = 1)
+
     # Update Leaderboard
     await update_leaderboard(guild)
-
-    # Shift bots to bottommost role
-    role = guild.get_role(924250286468526080) # P.E.W 'Bot' role ID
-    if role.position > 0:
-        await role.edit(position = 0)
-    return
-
-#region send functions
-@bot.command()
-async def send_rules(ctx):
-    await ctx.send(cc.rules1)
-    await ctx.send(cc.rules2, components = cc.emoji_buttons)
-    await ctx.send("Choose gang colour with: ```fix\n/colour [HEX]```")
     return
 
 leaderboard = 924737070138818600 # Message ID of leaderboard message
@@ -75,13 +90,14 @@ async def update_leaderboard(guild):
     return
 
 async def hoist_leaderboard(rlist, llist):
-    for i in range(min(3,len(llist))):
+    n_gangs = len(llist)
+    for i in range(min(3,n_gangs)):
         for role in rlist:
             if role.name == llist[i][0]:
                 print(role.name)
                 await role.edit(hoist=True)
+                await role.edit(position = n_gangs + 1 - i) # +1 for the Bot role
                 break
-#endregion
 
 @bot.event
 async def on_member_join(member):
@@ -115,13 +131,16 @@ async def colour(ctx:SlashContext, hex):
         print(hex)
         await role.edit(colour=hex)
         await ctx.send("Colour changed!")
-        await update(ctx.guild)
     except:
         await ctx.send("Invalid colour hex")
+        
+    try:
+        await update(ctx.guild)
+    except:
+        print("colour update() failed")
     return
 # endregion
 
-# region /play
 # region /play cache
 body = {
             "max_age": 1800,
@@ -229,7 +248,6 @@ async def play(ctx: SlashContext, game:str):
             await ctx.send("Connect to VC you pepeg")
     except:
         await ctx.send("Connect to VC you 4head")
-# endregion
 
 # region rgb
 # async def rgb():

@@ -5,7 +5,7 @@ def find_linked_role(member):
             invites = json.load(f)
     for i in invites:
         if invites[i]["linked_user_id"] == member.id:
-            role = discord.utils.get(member.guild.roles, id = invites[i]["linked_role_id"])
+            role = member.guild.get_role(invites[i]["linked_role_id"])
             return role
 
 async def new_member(member):
@@ -23,7 +23,7 @@ async def new_member(member):
             print(f"{member.name} joined using code ({i.code}).")
 
             # Inviter's role
-            role = discord.utils.get(guild.roles, id = inviter["linked_role_id"])
+            role = guild.get_role(inviter["linked_role_id"])
             await member.add_roles(role)
 
             # Own role
@@ -70,8 +70,8 @@ async def remove_member(member):
     print("i: " + i)
 
     # Legacy role members
-    old_role = discord.utils.get(guild.roles, id = invites[i]["linked_role_id"])
-    new_role = discord.utils.get(guild.roles, id = invites[invites[i]["parent_code"]]["linked_role_id"])
+    old_role = guild.get_role(invites[i]["linked_role_id"])
+    new_role = guild.get_role(invites[invites[i]["parent_code"]]["linked_role_id"])
 
     # Delete pinned message in member's DM
     try:
@@ -84,7 +84,7 @@ async def remove_member(member):
         print("DM Channel not found / no message pinned")
 
     # Announcement to old_role holders
-    announcement = (f"{member.name} has left the server.\n<@&{old_role.id}> will now be absorbed into {new_role.name}!")
+    announcement = (f"{member.name} has left the server.\n<@&{old_role.id}> {member.name}'s gang will now be absorbed into {new_role.name}!")
     general_channel = guild.get_channel(924048147825696840) # P.E.W's general channel
     await general_channel.send(announcement)
 
