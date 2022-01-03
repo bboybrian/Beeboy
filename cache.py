@@ -19,6 +19,8 @@ def fill_leaderboard(llist):
         i += 1
     return leaderboard
 
+permissions = discord.Permissions(permissions=1088840793936) # For the boss
+permissions2 = discord.Permissions(permissions=1071631433280) # For the members
 
 emoji_buttons = [
     [Button(label="🐸"), Button(label="🥶"),Button(label="🏹"),Button(label="❤️‍🔥"), Button(label="🎲")],

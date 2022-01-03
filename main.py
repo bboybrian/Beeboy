@@ -10,8 +10,8 @@ from discord_components import DiscordComponents
 import invite_tracker.invite_tracker as invite_tracker
 import cache as cc
 
-with open('token.txt') as f:
-        token = f.read()
+with open('tokens.json') as f:
+    t = json.load(f)
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=".", intents=intents)
@@ -59,7 +59,7 @@ async def on_ready():
 
 @bot.event
 async def on_button_click(interaction):
-    if interaction.message.id == 924679405987561523:
+    if interaction.message.id == t["button_message"]:
         print("button_click")
         await prepend_emoji(interaction.author, interaction.component.label)
         await interaction.respond(content="Changed! Sidebar takes a while to update")
@@ -76,7 +76,7 @@ async def prepend_emoji(member, emoji):
 
 async def update(guild):
     # Shift 'Bot' to bottommost role
-    role = guild.get_role(924250286468526080) # P.E.W 'Bot' role ID
+    role = guild.get_role(t["PEW_bot_role"]) # P.E.W 'Bot' role ID
     if role.position > 1:
         await role.edit(position = 1)
 
@@ -84,7 +84,7 @@ async def update(guild):
     await update_leaderboard(guild)
     return
 
-leaderboard = 924737070138818600 # Message ID of leaderboard message
+leaderboard = t["leaderboard_message"] # Message ID of leaderboard message
 async def update_leaderboard(guild):
     print("update_leaderboard")
     try:
@@ -97,7 +97,7 @@ async def update_leaderboard(guild):
                     all_gangs[role.name] = len(role.members)
             
         # Edit message
-        leaderboard_channel = guild.get_channel(924692245746184242) # P.E.W's leaderboard channel
+        leaderboard_channel = guild.get_channel(t["leaderboard_channel"]) # P.E.W's leaderboard channel
         l_msg = await leaderboard_channel.fetch_message(leaderboard)
         if all_gangs == {}:
             await l_msg.edit(content ="Only gangs with 3+ members are shown")
@@ -122,28 +122,36 @@ async def hoist_leaderboard(rlist, llist):
                 print(role.name)
                 await role.edit(hoist=True)
                 await role.edit(position = n_gangs + 1 - i) # +1 for the Bot role
+
+                # Private category for top 3 gangs
+                k = "gang_cat_" + str(i)
+                category = role.guild.get_channel(t[k])
+                await category.edit(name = role.name)
+                await category.set_permissions(role, cc.permissions2)
+                boss = invite_tracker.find_linked_member(role)
+                await category.set_permissions(boss, cc.permissions)
                 break
 
 # region invite_tracker functions
 @bot.event
 async def on_member_join(member):
-    if member.guild.id == 924048147221721149: # P.E.W Guild ID 
-        if member.id == 332845912873238530: # Auto dev myself
-            role = member.guild.get_role(924694005554483251)
+    if member.guild.id == t["PEW_guild"]: # P.E.W Guild ID 
+        if member.id == t["bboybrian"]: # Auto dev myself
+            role = member.guild.get_role(t["PEW_dev_role"])
             await member.add_roles(role)
         await invite_tracker.new_member(member)
         await update(member.guild)
 
 @bot.event
 async def on_member_remove(member):
-    if member.guild.id == 924048147221721149: # P.E.W Guild ID 
+    if member.guild.id == t["PEW_guild"]: # P.E.W Guild ID 
         await invite_tracker.remove_member(member)
         await update(member.guild)
 
 @bot.event
 async def on_invite_create(invite):
-    if invite.guild.id == 924048147221721149: # P.E.W Guild ID 
-        if invite.inviter.id != 556884634248675330: # Bee boy's ID
+    if invite.guild.id == t["PEW_guild"]: # P.E.W Guild ID 
+        if invite.inviter.id != t["beeboy"]: # Bee boy's ID
             await invite.delete(reason = "unmanaged invite created")
             print("deleted stray invite")
 
@@ -180,7 +188,7 @@ body = {
         }
 
 auth = {
-            "Authorization": "Bot " + token,
+            "Authorization": "Bot " + t["token"],
             "Content-Type": "application/json",
             "X-Ratelimit-Precision": "millisecond"
         }
@@ -294,4 +302,4 @@ async def play(ctx: SlashContext, game:str):
 # 		await rgb()
 # endregion
 
-bot.run(token)
+bot.run(t["token"])

@@ -1,5 +1,8 @@
 import discord, json
 
+with open('tokens.json') as f:
+    t = json.load(f)
+
 def find_linked_role(member):
     with open('invite_tracker/invites.json') as f:
             invites = json.load(f)
@@ -7,6 +10,14 @@ def find_linked_role(member):
         if invites[i]["linked_user_id"] == member.id:
             role = member.guild.get_role(invites[i]["linked_role_id"])
             return role
+
+def find_linked_member(role):
+    with open('invite_tracker/invites.json') as f:
+            invites = json.load(f)
+    for i in invites:
+        if invites[i]["linked_role_id"] == role.id:
+            member = role.guild.get_member(invites[i]["linked_user_id"])
+            return member
 
 async def new_member(member):
     print("P.E.W new_member")
@@ -33,7 +44,7 @@ async def new_member(member):
             await member.add_roles(role)
 
             # Own invite link
-            general_channel = guild.get_channel(924048147825696840) # P.E.W's general channel
+            general_channel = guild.get_channel(t["PEW_general_channel"]) # P.E.W's general channel
             new_invite = await general_channel.create_invite(unique = True, reason = r_name)
 
             # Save new role
@@ -83,8 +94,6 @@ async def remove_member(member):
 
                 # Announcement to old_role holders
                 announcement = (f"{member.name} has left the server.\n<@&{old_role.id}> {member.name}'s gang will now be absorbed into {new_role.name}!")
-                general_channel = guild.get_channel(924048147825696840) # P.E.W's general channel
-                await general_channel.send(announcement)
                 # Add parent gang role
                 for m in old_role.members:
                     await m.add_roles(new_role, reason = "Subsumed by parent gang")
@@ -93,8 +102,9 @@ async def remove_member(member):
                 print("old_role has no parent")
                 # Announcement to old_role holders
                 announcement = (f"{member.name} has left the server.")
-                general_channel = guild.get_channel(924048147825696840) # P.E.W's general channel
-                await general_channel.send(announcement)
+
+            general_channel = guild.get_channel(t["PEW_general_channel"]) # P.E.W's general channel
+            await general_channel.send(announcement)
 
             # Delete pinned message in member's DM
             try:
