@@ -10,8 +10,13 @@ from discord_components import DiscordComponents
 import invite_tracker.invite_tracker as invite_tracker
 import cache as cc
 
-with open('tokens.json') as f:
-    t = json.load(f)
+t = {}
+with open("tokens.env") as f:
+    for line in f:
+        if line.startswith('#') or not line.strip(): # Ignore comments
+            continue
+        key, value = line.strip().split('=', 1)
+        t[key] = value
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=".", intents=intents)

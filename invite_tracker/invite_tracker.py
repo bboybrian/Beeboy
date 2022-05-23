@@ -1,7 +1,12 @@
 import discord, json
 
-with open('tokens.json') as f:
-    t = json.load(f)
+t = {}
+with open("tokens.env") as f:
+    for line in f:
+        if line.startswith('#') or not line.strip(): # Ignore comments
+            continue
+        key, value = line.strip().split('=', 1)
+        t[key] = value
 
 def find_linked_role(member):
     with open('invite_tracker/invites.json') as f:
