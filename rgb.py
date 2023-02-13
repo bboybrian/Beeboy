@@ -6,11 +6,11 @@ def get_colour(col):
 	b = col & 0xFF
 	rgb = [r, g, b]
 
-	diff = random.randint(96,160)
+	diff = random.randint(64, 192)
 	choice = random.randint(0,2)
 
-	if rgb[choice] + diff > 255:
-		rgb[choice] -= diff
+	if rgb[choice] + diff > 255 and rgb[choice]:
+		rgb[choice] = max(0, rgb[choice] - diff)
 	else:
 		rgb[choice] += diff
 	

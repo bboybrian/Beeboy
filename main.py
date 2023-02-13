@@ -1,9 +1,12 @@
 import discord, requests, json
 from discord.ext import commands
-from rgb import get_colour
 import asyncio
 
+import os
+import openai
+
 import cache as cc
+from rgb import get_colour
 
 # Read environment variables from file
 E = {}
@@ -15,6 +18,8 @@ with open("tokens.env") as f:
         E[key] = value
 
 bot = commands.Bot(command_prefix="", intents=discord.Intents.all())
+openai.api_key = E["openAI"]
+openai.Model.list()
 
 @bot.event
 async def on_ready():
@@ -79,8 +84,8 @@ async def play(
     except:
         await ctx.send("Connect to VC you 4head")
 
-# region rgb
-
+# /rgb
+# Makes the role "rgb" change to a visually different, random color every few seconds
 @bot.slash_command(
     name = "rgb",
     # description = "Play games in a voice channel",
@@ -90,20 +95,40 @@ async def rgb(
 ):
     try:
         guild = bot.get_guild(551625591305011201)
-        role = discord.utils.get(guild.roles, name="online")
+        role = discord.utils.get(guild.roles, name="rgb")
         print(role.color)
         col = 0xc80000
 
         while True:
             col = get_colour(col)
             await role.edit(colour=col)
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
 
     except:
         await ctx.send("Something went wrong")
-	# if message.content.startswith('u r a b'):
-	# 	await message.channel.send('me too thanks')
-	# 	await rgb()
-# endregion
+
+# /img [prompt]
+# Uses openAI to generate an image using the input prompt
+@bot.slash_command(
+    name = "img",
+    description = "AI generated image from a prompt",
+)
+
+async def img(
+    ctx: discord.ApplicationContext,
+    prompt: discord.Option(str, "What do you want to see?"),
+):
+    try:
+        p = prompt
+        await ctx.send("Generating images...")
+        response = openai.Image.create(
+            prompt=p,
+            n=1,
+            size="1024x1024"
+        )
+        for image in response["data"]:
+            await ctx.send(image["url"])
+    except:
+        await ctx.send("Something went wrong")
 
 bot.run(E["token"])
