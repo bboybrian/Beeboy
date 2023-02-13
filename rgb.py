@@ -1,27 +1,22 @@
+import random
 def get_colour(col):
-	b = col & 0xFF
+	r = col >> 16
 	g = col & 0xFF00
 	g = g >> 8
-	r = col >> 16
+	b = col & 0xFF
+	rgb = [r, g, b]
 
-	if b == 0 and r > 0:
-		if g >= r:
-			r -= 8
-		else:
-			g += 8
+	diff = random.randint(96,160)
+	choice = random.randint(0,2)
 
-	elif g == 0 and b > 0:
-		if r >= b:
-			b -= 8
-		else:
-			r += 8
-
+	if rgb[choice] + diff > 255:
+		rgb[choice] -= diff
 	else:
-		if b >= g:
-			g -= 8
-		else:
-			b += 8
-
+		rgb[choice] += diff
+	
+	r = rgb[0]
+	g = rgb[1]
+	b = rgb[2]
 	c = (r << 16) + (g << 8) + b
 	print('r:', r, 'g:', g, 'b:', b)
 	return c
