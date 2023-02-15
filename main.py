@@ -7,6 +7,7 @@ import openai
 
 import cache as cc
 from rgb import get_colour
+import chess_puzzles.chess_puzzler as chess_puzzler
 
 # Read environment variables from file
 E = {}
@@ -18,6 +19,7 @@ with open("tokens.env") as f:
         E[key] = value
 
 bot = commands.Bot(command_prefix="", intents=discord.Intents.all())
+chessPuzzler = chess_puzzler.ChessPuzzler()
 openai.api_key = E["openAI"]
 openai.Model.list()
 
@@ -78,7 +80,7 @@ async def play(
             code = (requests.post(url, data = obj, headers = auth))
             code = json.loads(code.text)["code"]
             invite = f"https://discord.gg/{code}"
-            await ctx.send(invite)
+            await ctx.respond(invite)
         else:
             await ctx.send("Connect to VC you pepeg")
     except:
@@ -87,8 +89,7 @@ async def play(
 # /rgb
 # Makes the role "rgb" change to a visually different, random color every few seconds
 @bot.slash_command(
-    name = "rgb",
-    # description = "Play games in a voice channel",
+    name = "rgb"
 )
 async def rgb(
     ctx: discord.ApplicationContext
@@ -111,12 +112,12 @@ async def rgb(
 # Uses openAI to generate an image using the input prompt
 @bot.slash_command(
     name = "img",
-    description = "AI generated image from a prompt",
+    description = "AI generated image from a prompt"
 )
 
 async def img(
     ctx: discord.ApplicationContext,
-    prompt: discord.Option(str, "What do you want to see?"),
+    prompt: discord.Option(str, "What do you want to see?")
 ):
     try:
         p = prompt
@@ -127,8 +128,26 @@ async def img(
             size="1024x1024"
         )
         for image in response["data"]:
-            await ctx.send(image["url"])
+            await ctx.respond(image["url"])
+        ctx.send("")
     except:
         await ctx.send("Something went wrong")
+
+# /chess
+# Generates a chess puzzle
+@bot.slash_command(
+    name = "chess",
+    description = "Generates a chess puzzle"
+)
+
+async def chess(
+    ctx: discord.ApplicationContext
+):
+    # try:
+        puzzle_img, puzzle_embed, puzzle_buttons, hint, answer = chessPuzzler.generate_puzzle()
+        await ctx.respond(file=puzzle_img, embed=puzzle_embed)
+        await ctx.send("Hint: ||" + hint + "||\nAnswer: ||" + answer +"||")
+    # except:
+    #     await ctx.send("Something went wrong")
 
 bot.run(E["token"])
